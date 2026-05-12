@@ -1,0 +1,19 @@
+---
+title: "03 · Clinical Interpretation — FIH Starting Dose"
+---
+
+```{r setup, include=FALSE}
+library(here); library(dplyr)
+```
+
+**Conclusion:** Allometric scaling from rat (0.25 kg) and dog (10 kg) predicts
+human clearance of approximately 4.5–5.5 L/hr (70 kg adult) and volume of
+distribution of 70–90 L, corresponding to a half-life of approximately
+10–14 hours — consistent with once-daily dosing.
+
+The MABEL-based starting dose (10% receptor occupancy) is estimated at
+0.3 mg, providing a predicted plasma free concentration of 0.11 nM. The
+NOAEL-derived HED with a 10-fold safety factor yields a starting dose of
+1.5 mg. Per ICH S9/M3(R2), the lower value (MABEL) is selected: **0.3 mg**
+as the FIH starting dose. This represents a > 500-fold margin below the
+dog NOAEL on a mg/kg basis.

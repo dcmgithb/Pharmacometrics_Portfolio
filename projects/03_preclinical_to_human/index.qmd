@@ -1,0 +1,137 @@
+---
+title: "Project 03 — Preclinical to Human: FIH Dose Prediction"
+subtitle: "Multi-species allometric scaling · MABEL/NOAEL safety margin"
+date: today
+---
+
+```{r setup, include=FALSE}
+library(here)
+library(dplyr)
+library(ggplot2)
+library(gt)
+source(here("R", "helpers.R"))
+theme_set(theme_bw())
+```
+
+> **Simulated data.** Rat and dog PK datasets are synthetic. Assumed in-vitro
+> parameters (EC₅₀, fu) are illustrative and not compound-specific. See
+> `01_simulate_data.R` for true values.
+
+## Background
+
+First-in-human (FIH) dose selection requires (1) predicting human PK from
+preclinical species and (2) identifying a safe starting dose. Simple allometric
+scaling — fitting power laws to CL and V across species — is the foundational
+approach before physiologically-based methods are feasible.
+
+## Question
+
+What FIH oral starting dose is supported by rat and dog IV bolus PK using
+allometric scaling, and what safety margin does it provide relative to MABEL
+and NOAEL?
+
+## Data
+
+```{r load-data}
+rat <- read.csv(here("projects", "03_preclinical_to_human", "data", "rat_pk.csv"))
+dog <- read.csv(here("projects", "03_preclinical_to_human", "data", "dog_pk.csv"))
+cat(sprintf("Rat: %d animals | Dog: %d animals\n",
+    length(unique(rat$ID)), length(unique(dog$ID))))
+```
+
+## Model
+
+**Per-species structural model (1-compartment IV):**
+
+$$
+\frac{dA_c}{dt} = -\frac{CL}{V} A_c, \quad C = \frac{A_c}{V}
+$$
+
+**Allometric prediction:**
+
+$$
+CL = \alpha_{CL} \cdot BW^{\beta_{CL}}, \quad V = \alpha_V \cdot BW^{\beta_V}
+$$
+
+$\beta_{CL}$ is fixed at 0.75 (standard allometry); $\beta_V$ fixed at 1.0.
+The intercepts $\alpha$ are estimated from the two-species data by fitting
+log(CL) ~ log(BW) with a pooled regression. Human PK is the out-of-sample
+prediction at BW = 70 kg.
+
+## Results
+
+```{r allometric-plot, fig.width=7, fig.height=5, fig.cap="Allometric scaling plot. Points = species means (rat, dog) with 95% CI. Line = fitted power law. Triangle = predicted human value. Shaded band = 95% prediction interval from bootstrap of allometric coefficients."}
+allo_path <- here("projects", "03_preclinical_to_human", "results", "allometric_plot.png")
+if (file.exists(allo_path)) knitr::include_graphics(allo_path) else cat("Run 03_diagnostics.R")
+```
+
+```{r human-prediction}
+pred_path <- here("projects", "03_preclinical_to_human", "results", "human_pk_prediction.csv")
+if (file.exists(pred_path)) {
+  read.csv(pred_path) |>
+    gt() |>
+    tab_header(title = "Predicted Human PK Parameters",
+               subtitle = "Allometric scaling from rat + dog; 95% CI from bootstrap") |>
+    fmt_number(columns = where(is.numeric), decimals = 2)
+} else {
+  cat("Run 02_fit_model.R.")
+}
+```
+
+```{r fih-dose-table}
+fih_path <- here("projects", "03_preclinical_to_human", "results", "fih_dose_table.csv")
+if (file.exists(fih_path)) {
+  read.csv(fih_path) |>
+    gt() |>
+    tab_header(title = "FIH Starting Dose Summary",
+               subtitle = "MABEL-based and NOAEL-based approaches; lower value selected") |>
+    fmt_number(columns = where(is.numeric), decimals = 2) |>
+    tab_footnote("MABEL: minimum anticipated biological effect level (10% receptor occupancy).
+                  NOAEL: no-observed-adverse-effect level from simulated 28-day rat toxicology.
+                  Safety factor of 10× applied to NOAEL-derived HED.")
+} else {
+  cat("Run 03_diagnostics.R.")
+}
+```
+
+## Diagnostics
+
+```{r gof-rat, fig.cap="Rat PK model GOF."}
+rat_gof <- here("projects", "03_preclinical_to_human", "results", "gof_rat.png")
+if (file.exists(rat_gof)) knitr::include_graphics(rat_gof) else cat("Run 03_diagnostics.R")
+```
+
+```{r gof-dog, fig.cap="Dog PK model GOF."}
+dog_gof <- here("projects", "03_preclinical_to_human", "results", "gof_dog.png")
+if (file.exists(dog_gof)) knitr::include_graphics(dog_gof) else cat("Run 03_diagnostics.R")
+```
+
+```{r sensitivity, fig.cap="Sensitivity of predicted human CL to allometric exponent. Horizontal axis: exponent value. Vertical dashed line = standard 0.75."}
+sens_path <- here("projects", "03_preclinical_to_human", "results", "sensitivity_exponent.png")
+if (file.exists(sens_path)) knitr::include_graphics(sens_path) else cat("Run 03_diagnostics.R")
+```
+
+## Interpretation
+
+```{r decision, results='asis'}
+dec_path <- here("projects", "03_preclinical_to_human", "results", "fih_recommendation.txt")
+if (file.exists(dec_path)) {
+  cat(readLines(dec_path), sep = "\n")
+} else {
+  cat("**FIH recommendation:** Generated after running 02_fit_model.R and 03_diagnostics.R.")
+}
+```
+
+## Limitations
+
+- Only two species are available; a third (typically cynomolgus monkey) would
+  increase confidence in the allometric line.
+- A fixed exponent of 0.75 is assumed; the data-estimated exponent is reported
+  as a sensitivity check. With two species, the exponent is not independently
+  estimable.
+- In-vitro EC₅₀ and fu used for MABEL are assumed; in a real submission these
+  would come from binding assays and plasma protein binding experiments.
+- The NOAEL multiplier (50×MABEL) is illustrative; actual toxicology studies
+  define the NOAEL quantitatively.
+- Oral bioavailability in humans is not estimated here; an F correction would
+  be required for oral dosing.

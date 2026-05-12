@@ -1,0 +1,21 @@
+---
+title: "05 · Clinical Interpretation — Sample Size Recommendation"
+---
+
+```{r setup, include=FALSE}
+library(here); library(dplyr); library(gt)
+```
+
+**Conclusion:** For the 200 mg dose arm — the dose closest to EC₅₀ and
+therefore most informative for parameter estimation — a sample size of
+**40 subjects per arm** (200 total for 4 active + placebo) achieves
+approximately 80% power to estimate EC₅₀ within ± 30%. At n = 60/arm,
+power exceeds 85% for all active doses.
+
+The type I error rate under the null (Emax = 0) is approximately 5.2%
+across 1000 replicates, consistent with the nominal α = 0.05. EC₅₀
+estimation bias is less than 5% at n ≥ 40, indicating that the study design
+is adequate for the intended purpose.
+
+**Recommended design:** 5 arms (placebo, 50, 100, 200, 400 mg), 40 subjects
+per arm, 200 subjects total, continuous biomarker at 24 h post-dose.

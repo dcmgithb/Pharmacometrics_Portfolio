@@ -1,0 +1,114 @@
+---
+title: "Project 05 — Clinical Trial Simulation: Sample Size for EC₅₀ Precision"
+subtitle: "1000 replicates · rxode2 + future.apply · Power curve and operating characteristics"
+date: today
+---
+
+```{r setup, include=FALSE}
+library(here)
+library(dplyr)
+library(ggplot2)
+library(gt)
+source(here("R", "helpers.R"))
+theme_set(theme_bw())
+```
+
+> **Simulated data.** Trial replicates are generated from the PK/PD model
+> estimated in Project 02. True parameters are carried over unchanged.
+
+## Background
+
+Clinical trial simulation (CTS) quantifies the operating characteristics of
+a planned study design before committing resources. For dose-ranging studies
+the key question is not hypothesis testing but parameter estimation precision:
+can the EC₅₀ be estimated with enough accuracy to support dose selection in a
+subsequent confirmatory trial?
+
+## Question
+
+For a Phase 2 dose-ranging study (4 doses, placebo-controlled), what sample
+size per arm achieves ≥ 80% power to estimate EC₅₀ within ± 30% of the true
+value? What are the type I error rate and estimation bias?
+
+## Study Design
+
+| Design element | Value |
+|----------------|-------|
+| Doses | 50, 100, 200, 400 mg oral QD |
+| Arms | Placebo + 4 active doses |
+| n per arm | 20, 40, 60, 80, 120 (5 scenarios) |
+| Endpoint | Continuous biomarker at 24 h |
+| Analysis | Non-linear least squares Emax fit to simulated arm means |
+| Success criterion | 95% CI for EC₅₀ contains [0.7×, 1.3×] true EC₅₀ |
+| Replicates | 1000 per scenario |
+
+## Model
+
+PK/PD model from Project 02 (1-cmt oral PK, sigmoid Emax PD), re-used via rxode2.
+IIV on CL, V, E₀, E~max~, EC₅₀. RUV proportional (PK) and additive (PD).
+
+## Results
+
+```{r power-curve, fig.width=9, fig.height=5, fig.cap="Power (% replicates with EC50 estimate within ±30% of true value) vs sample size per arm. One curve per dose. Shaded region = Monte Carlo 95% CI (n = 1000 replicates). Horizontal dashed line = 80% target."}
+pow_path <- here("projects", "05_trial_simulation", "results", "power_curve.png")
+if (file.exists(pow_path)) {
+  knitr::include_graphics(pow_path)
+} else {
+  cat("Run 03_diagnostics.R to generate power curve.")
+}
+```
+
+```{r oc-table}
+oc_path <- here("projects", "05_trial_simulation", "results", "operating_characteristics.csv")
+if (file.exists(oc_path)) {
+  read.csv(oc_path) |>
+    gt() |>
+    tab_header(
+      title = "Operating Characteristics",
+      subtitle = "By dose and sample size; success = EC50 within ±30% of truth"
+    ) |>
+    fmt_percent(columns = c(Power, TypeIError), decimals = 1) |>
+    fmt_number(columns = c(EC50_Bias, EC50_RMSE), decimals = 3) |>
+    tab_style(
+      style = cell_fill(color = "#d4edda"),
+      locations = cells_body(rows = Power >= 0.80)
+    ) |>
+    tab_footnote("Highlighted rows achieve ≥ 80% power. TypeIError estimated
+                  from placebo-vs-placebo replicates under the null (Emax = 0).")
+} else {
+  cat("Run 03_diagnostics.R to generate operating characteristics table.")
+}
+```
+
+```{r ec50-precision, fig.width=9, fig.height=5, fig.cap="Distribution of EC50 estimates across 1000 replicates, by sample size and dose. Box = IQR; whiskers = 5th–95th percentile. Dashed line = true EC50. Wider spread at low n and low dose reflects identifiability limits."}
+prec_path <- here("projects", "05_trial_simulation", "results", "ec50_precision.png")
+if (file.exists(prec_path)) {
+  knitr::include_graphics(prec_path)
+} else {
+  cat("Run 03_diagnostics.R.")
+}
+```
+
+## Interpretation
+
+```{r recommendation, results='asis'}
+rec_path <- here("projects", "05_trial_simulation", "results", "sample_size_recommendation.txt")
+if (file.exists(rec_path)) {
+  cat(readLines(rec_path), sep = "\n")
+} else {
+  cat("**Sample size recommendation:** Generated after running 02_fit_model.R and 03_diagnostics.R.")
+}
+```
+
+## Limitations
+
+- Replication uses a Monte Carlo estimator; power estimates have simulation
+  error of approximately ±1.5% at n = 1000 replicates (binomial SE).
+- The analysis model (non-linear least squares on arm means) ignores IIV;
+  a mixed-effects PK/PD model in the analysis step would give tighter EC₅₀
+  estimates, so these power estimates are conservative.
+- A fixed true EC₅₀ (2.5 mg/L) is used; uncertainty in EC₅₀ from the
+  Phase 1 study would widen the precision requirements.
+- Type I error is evaluated at the dose-level (each dose vs placebo); a
+  family-wise error rate correction for multiple comparisons is not applied.
+- Dropout and protocol deviations are not simulated.

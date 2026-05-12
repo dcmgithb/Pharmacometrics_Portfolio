@@ -1,0 +1,182 @@
+---
+title: "Project 01 — Population PK: Flat vs Weight-Based Dosing"
+subtitle: "2-compartment oral model with allometric scaling · nlmixr2 SAEM"
+date: today
+---
+
+```{r setup, include=FALSE}
+library(here)
+library(dplyr)
+library(ggplot2)
+library(gt)
+library(kableExtra)
+source(here("R", "helpers.R"))
+theme_set(theme_bw())
+```
+
+> **Simulated data.** All concentrations in this report were generated from a
+> known pharmacokinetic model with documented true parameters. No real patient
+> data are used.
+
+## Background
+
+Weight is the most commonly investigated covariate in population PK models
+because body size influences apparent volume of distribution and renal/hepatic
+clearance. Allometric theory predicts clearance scales with body weight (BW)
+raised to the 0.75 power and volume scales linearly. Whether this relationship
+is clinically meaningful enough to require weight-based dosing — rather than a
+flat dose — depends on the magnitude of the exposure difference across the
+observed weight range and the therapeutic window.
+
+## Question
+
+Does a flat 100 mg once-daily (QD) oral dose maintain target trough
+concentration (C~trough~ > 1 ng/mL) across the body weight range 40–120 kg,
+or is weight-based dosing (or weight-banded dosing) needed?
+
+## Data
+
+```{r load-data}
+pk <- read.csv(here("projects", "01_popPK_nlmixr2", "data", "pk_data.csv"))
+cat(sprintf("Subjects: %d | Observations: %d | Weight range: %.0f–%.0f kg\n",
+    length(unique(pk$ID)), sum(pk$EVID == 0),
+    min(pk$BW[pk$EVID==0]), max(pk$BW[pk$EVID==0])))
+```
+
+```{r data-summary-table}
+pk |>
+  filter(EVID == 0) |>
+  group_by(ID) |>
+  summarise(BW = first(BW), AGE = first(AGE), SEX = first(SEX),
+            DOSE = first(DOSE), n_obs = n(), .groups = "drop") |>
+  summarise(
+    `N subjects` = n(),
+    `BW mean (SD)` = sprintf("%.1f (%.1f)", mean(BW), sd(BW)),
+    `Age mean (SD)` = sprintf("%.1f (%.1f)", mean(AGE), sd(AGE)),
+    `% female` = sprintf("%.0f%%", 100*mean(SEX==1)),
+    `Obs per subject (median)` = median(n_obs)
+  ) |>
+  gt() |>
+  tab_header(title = "Simulated Study Demographics") |>
+  tab_footnote("All values are from a synthetic dataset. True PK parameters
+               are documented in 01_simulate_data.R.")
+```
+
+## Model
+
+**Structural model:** two-compartment pharmacokinetics with first-order oral
+absorption from a depot compartment.
+
+$$
+\frac{dA_{dep}}{dt} = -K_a \cdot A_{dep}
+$$
+$$
+\frac{dA_{c}}{dt} = K_a \cdot A_{dep} - \frac{CL}{V_c} A_c - \frac{Q}{V_c} A_c + \frac{Q}{V_p} A_p
+$$
+$$
+\frac{dA_{p}}{dt} = \frac{Q}{V_c} A_c - \frac{Q}{V_p} A_p
+$$
+$$
+C = A_c / V_c
+$$
+
+**Allometric covariate model:**
+
+$$
+CL_i = CL_{ref} \cdot \left(\frac{BW_i}{70}\right)^{0.75} \cdot e^{\eta_{CL,i}}
+$$
+$$
+V_{c,i} = V_{c,ref} \cdot \left(\frac{BW_i}{70}\right)^{1.0} \cdot e^{\eta_{V,i}}
+$$
+
+**IIV:** log-normal on CL, V~c~, and K~a~.
+**RUV:** proportional + additive.
+**Estimation:** nlmixr2 SAEM (n.burn = 200, n.em = 300).
+
+## Results
+
+```{r parameter-table}
+if (file.exists(here("projects", "01_popPK_nlmixr2", "results", "parameter_table.csv"))) {
+  par_tbl <- read.csv(here("projects", "01_popPK_nlmixr2", "results", "parameter_table.csv"))
+  par_tbl |>
+    gt() |>
+    tab_header(title = "Population PK Parameter Estimates",
+               subtitle = "2-compartment oral model with allometric weight") |>
+    fmt_number(columns = where(is.numeric), decimals = 3) |>
+    tab_footnote("RSE = relative standard error from Fisher information matrix.
+                  Bootstrap 95% CI from n = 200 case-resampling replicates.")
+} else {
+  cat("Run 02_fit_model.R to generate parameter estimates.")
+}
+```
+
+## Diagnostics
+
+```{r gof-panel, fig.width=10, fig.height=9, fig.cap="GOF panel: DV vs PRED (upper left), DV vs IPRED (upper right), CWRES vs TIME (lower left), CWRES vs PRED (lower right). Reference lines at 0 (solid) and ±1.96 (dashed)."}
+gof_path <- here("projects", "01_popPK_nlmixr2", "results", "gof_panel.png")
+if (file.exists(gof_path)) {
+  knitr::include_graphics(gof_path)
+} else {
+  cat("Run 03_diagnostics.R to generate GOF plots.")
+}
+```
+
+```{r vpc-plot, fig.width=10, fig.height=5, fig.cap="Prediction-corrected VPC stratified by body weight tertile (low: <60 kg, mid: 60–85 kg, high: >85 kg). Ribbons show 95% CI of simulated 5th/50th/95th percentiles (n = 1000 simulations). Black dashed lines are observed percentiles."}
+vpc_path <- here("projects", "01_popPK_nlmixr2", "results", "pcvpc_by_weight.png")
+if (file.exists(vpc_path)) {
+  knitr::include_graphics(vpc_path)
+} else {
+  cat("Run 03_diagnostics.R to generate VPC.")
+}
+```
+
+```{r shrinkage}
+shrink_path <- here("projects", "01_popPK_nlmixr2", "results", "shrinkage_table.rds")
+if (file.exists(shrink_path)) {
+  readRDS(shrink_path)
+} else {
+  cat("Run 03_diagnostics.R to generate shrinkage table.")
+}
+```
+
+```{r bootstrap-ci}
+boot_path <- here("projects", "01_popPK_nlmixr2", "results", "bootstrap_summary.rds")
+if (file.exists(boot_path)) {
+  readRDS(boot_path)
+} else {
+  cat("Run 03_diagnostics.R to generate bootstrap CI table.")
+}
+```
+
+## Interpretation
+
+```{r dosing-simulation, fig.width=9, fig.height=5, fig.cap="Simulated steady-state trough concentration distributions by dosing strategy and body weight group. Horizontal dashed line = target trough (1 ng/mL). Numbers above bars show % of subjects below target."}
+dose_path <- here("projects", "01_popPK_nlmixr2", "results", "dosing_comparison.png")
+if (file.exists(dose_path)) {
+  knitr::include_graphics(dose_path)
+} else {
+  cat("Run 03_diagnostics.R to generate dosing simulation plot.")
+}
+```
+
+```{r decision, results='asis'}
+dec_path <- here("projects", "01_popPK_nlmixr2", "results", "dosing_decision.txt")
+if (file.exists(dec_path)) {
+  cat(readLines(dec_path), sep = "\n")
+} else {
+  cat("**Dosing decision:** Generated after running 02_fit_model.R and 03_diagnostics.R.")
+}
+```
+
+## Limitations
+
+- Dataset is synthetic; true model structure is known to match the estimation
+  model, which is not typical in practice.
+- A fixed allometric exponent (0.75 for CL) was assumed; the data-estimated
+  exponent is reported in the parameter table as a sensitivity check.
+- The target trough (1 ng/mL) is illustrative and not linked to a clinical
+  endpoint in this portfolio.
+- Bootstrap was run with n = 200 replicates; for regulatory submissions
+  n ≥ 500 is recommended.
+- Only body weight was evaluated as a covariate; age, renal function, and
+  sex may also be relevant.

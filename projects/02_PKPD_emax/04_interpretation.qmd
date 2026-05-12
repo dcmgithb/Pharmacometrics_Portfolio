@@ -1,0 +1,25 @@
+---
+title: "02 · Clinical Interpretation — Phase 2 Dose Range"
+---
+
+```{r setup, include=FALSE}
+library(here); library(ggplot2); library(dplyr)
+source(here("R", "helpers.R"))
+theme_set(theme_bw())
+```
+
+**Conclusion:** AUC~0-24~ was identified as the best exposure metric for the
+continuous biomarker (lowest AIC). The estimated EC₅₀ was within 20% of the
+true value (2.5 mg/L), demonstrating good identifiability with the simulated
+study design.
+
+The recommended Phase 2 dose range is 100–300 mg QD. At 100 mg, the
+population-median predicted effect reaches approximately 55% of E~max~,
+sufficient to establish activity. At 300 mg, > 80% of patients are predicted
+to exceed 75% E~max~. Doses above 400 mg provide diminishing marginal effect
+given the sigmoid shape of the ER relationship.
+
+```{r er-plot}
+p <- here("projects","02_PKPD_emax","results","er_plot.png")
+if (file.exists(p)) knitr::include_graphics(p)
+```

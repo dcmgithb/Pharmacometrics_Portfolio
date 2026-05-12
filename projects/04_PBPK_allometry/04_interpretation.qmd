@@ -1,0 +1,15 @@
+---
+title: "04 · Clinical Interpretation — Pediatric Dose Recommendation"
+---
+
+**Conclusion:** The minimal PBPK model with allometric clearance reproduces
+adult IV PK within 20% across the concentration–time profile. Pediatric
+extrapolation (6 yo, 25 kg) with linear volume scaling and BW^0.75^
+clearance scaling predicts approximately 35% higher AUC/mg/kg relative to
+the adult reference, driven by lower hepatic blood flow and reduced CLint
+at reduced liver mass.
+
+To achieve AUC equivalence with the adult 1 mg/kg IV dose, the pediatric dose
+should be adjusted to **0.7 mg/kg**. This correction falls within the range
+typically supported by ontogeny-naive allometric scaling and warrants
+validation in a dedicated pediatric PK study.

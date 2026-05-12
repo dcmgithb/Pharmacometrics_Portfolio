@@ -1,0 +1,56 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "Pharmacometrics Portfolio"
+  description: "Reproducible population PK, PK/PD, translational, and clinical trial simulation analyses"
+  navbar:
+    left:
+      - text: "Home"
+        href: index.qmd
+      - text: "01 · Pop PK"
+        href: projects/01_popPK_nlmixr2/index.qmd
+      - text: "02 · PK/PD Emax"
+        href: projects/02_PKPD_emax/index.qmd
+      - text: "03 · Preclinical→Human"
+        href: projects/03_preclinical_to_human/index.qmd
+      - text: "04 · PBPK"
+        href: projects/04_PBPK_allometry/index.qmd
+      - text: "05 · Trial Sim"
+        href: projects/05_trial_simulation/index.qmd
+    right:
+      - icon: github
+        href: https://github.com/dcmgithb/pharmacometrics
+  page-footer:
+    left: "MIT License · All data simulated · No NONMEM required"
+    right: "Built with [Quarto](https://quarto.org)"
+
+execute:
+  freeze: auto
+  cache: false
+
+format:
+  html:
+    theme: cosmo
+    toc: true
+    toc-depth: 3
+    toc-title: "Contents"
+    code-fold: true
+    code-summary: "Show code"
+    code-tools: true
+    fig-dpi: 300
+    fig-width: 8
+    fig-height: 6
+    self-contained: false
+    anchor-sections: true
+    smooth-scroll: true
+    df-print: paged
+
+knitr:
+  opts_chunk:
+    message: false
+    warning: false
+    echo: true
+    dev: ["png", "svg"]
+    dpi: 300

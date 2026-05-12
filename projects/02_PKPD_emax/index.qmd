@@ -1,0 +1,140 @@
+---
+title: "Project 02 — PK/PD: Sigmoid Emax Exposure–Response"
+subtitle: "Sequential PK→PD · Best exposure metric · Phase 2 dose recommendation"
+date: today
+---
+
+```{r setup, include=FALSE}
+library(here)
+library(dplyr)
+library(ggplot2)
+library(gt)
+source(here("R", "helpers.R"))
+theme_set(theme_bw())
+```
+
+> **Simulated data.** All observations are synthetic. True PK and PD parameter
+> values are in `01_simulate_data.R`.
+
+## Background
+
+Exposure–response (ER) analysis links a pharmacokinetic exposure metric to a
+pharmacodynamic outcome. The choice of metric — peak concentration (C~max~),
+area under the curve (AUC), or average concentration (C~avg~) — can
+meaningfully affect EC₅₀ estimates and Phase 2 dose selection. A sigmoid
+(Hill) Emax model is the canonical framework for saturable, concentration-
+dependent effects.
+
+## Question
+
+Which exposure metric (C~max~, AUC~0-24~, C~avg~) best predicts the
+continuous biomarker response? What is the EC₅₀ and the recommended Phase 2
+dose range?
+
+## Data
+
+```{r load-data}
+pkpd <- read.csv(here("projects", "02_PKPD_emax", "data", "pkpd_data.csv"))
+cat(sprintf("Subjects: %d | PK observations: %d | PD observations: %d\n",
+    length(unique(pkpd$ID)),
+    sum(pkpd$CMT == 1 & pkpd$EVID == 0, na.rm = TRUE),
+    sum(pkpd$CMT == 2 & pkpd$EVID == 0, na.rm = TRUE)))
+```
+
+## Model
+
+**PK sub-model (1-compartment oral):**
+
+$$
+\frac{dA_{dep}}{dt} = -K_a \cdot A_{dep}, \quad
+\frac{dA_c}{dt} = K_a \cdot A_{dep} - \frac{CL}{V} A_c, \quad C = \frac{A_c}{V}
+$$
+
+**PD sub-model (direct sigmoid Emax):**
+
+$$
+E(t) = E_0 + \frac{E_{max} \cdot C(t)^\gamma}{EC_{50}^\gamma + C(t)^\gamma}
+$$
+
+IIV on E₀, E~max~, and EC₅₀ (log-normal). Sequential fit: PK parameters
+fixed from Step 1 individual estimates; PD fitted to IPRED-driven effect.
+
+## Results
+
+### Exposure Metric Comparison
+
+```{r metric-comparison}
+metric_path <- here("projects", "02_PKPD_emax", "results", "metric_comparison.csv")
+if (file.exists(metric_path)) {
+  read.csv(metric_path) |>
+    gt() |>
+    tab_header(title = "Exposure Metric Comparison",
+               subtitle = "Lower AIC = better fit to observed PD data") |>
+    fmt_number(columns = where(is.numeric), decimals = 1) |>
+    tab_style(
+      style = cell_fill(color = "#d4edda"),
+      locations = cells_body(rows = AIC == min(AIC))
+    )
+} else {
+  cat("Run 02_fit_model.R to generate metric comparison.")
+}
+```
+
+### PD Parameter Estimates
+
+```{r pd-params}
+pd_path <- here("projects", "02_PKPD_emax", "results", "pd_parameters.csv")
+if (file.exists(pd_path)) {
+  read.csv(pd_path) |>
+    gt() |>
+    tab_header(title = "PD Parameter Estimates — Sigmoid Emax Model") |>
+    fmt_number(columns = where(is.numeric), decimals = 3)
+} else {
+  cat("Run 02_fit_model.R.")
+}
+```
+
+## Diagnostics
+
+```{r gof-pk, fig.cap="PK sub-model GOF. CWRES vs TIME should show no trend."}
+pk_gof <- here("projects", "02_PKPD_emax", "results", "gof_pk.png")
+if (file.exists(pk_gof)) knitr::include_graphics(pk_gof) else cat("Run 03_diagnostics.R")
+```
+
+```{r gof-pd, fig.cap="PD sub-model GOF. CWRES vs TIME and vs PRED should be centred at zero."}
+pd_gof <- here("projects", "02_PKPD_emax", "results", "gof_pd.png")
+if (file.exists(pd_gof)) knitr::include_graphics(pd_gof) else cat("Run 03_diagnostics.R")
+```
+
+```{r er-plot, fig.width=9, fig.height=5, fig.cap="Exposure–response plot. Individual observed data (points) overlaid on model-predicted mean (line) with 90% PI ribbon (n = 1000 simulations). Vertical dashed lines = doses evaluated. Horizontal lines = 50% and 80% Emax thresholds."}
+er_path <- here("projects", "02_PKPD_emax", "results", "er_plot.png")
+if (file.exists(er_path)) knitr::include_graphics(er_path) else cat("Run 03_diagnostics.R")
+```
+
+## Interpretation
+
+```{r phase2-recommendation}
+rec_path <- here("projects", "02_PKPD_emax", "results", "phase2_recommendation.csv")
+if (file.exists(rec_path)) {
+  read.csv(rec_path) |>
+    gt() |>
+    tab_header(title = "Phase 2 Dose Recommendation",
+               subtitle = "Doses achieving 50–80% Emax at population median") |>
+    fmt_number(columns = where(is.numeric), decimals = 1)
+} else {
+  cat("Run 03_diagnostics.R to generate Phase 2 recommendation table.")
+}
+```
+
+## Limitations
+
+- Sequential PK→PD approach assumes PK is perfectly characterised in Step 1;
+  any PK estimation error propagates to the PD estimates without inflating
+  their standard errors.
+- EC₅₀ IIV is high (ω ≈ 40% CV in the true model), so individual-level
+  predictions have wide intervals.
+- Direct Emax assumes instantaneous equilibration between plasma and effect
+  site; a PK/PD lag time or effect-compartment model may be more appropriate
+  for some drugs.
+- The biomarker endpoint is continuous; for binary or time-to-event outcomes,
+  logistic or parametric TTE models would be required.
