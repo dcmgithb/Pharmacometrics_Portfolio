@@ -1,0 +1,52 @@
+---
+title: "Pharmacometrics Portfolio"
+subtitle: "Reproducible analyses — open-source toolchain — all data simulated"
+---
+
+> **Data notice:** Every dataset in this portfolio is entirely synthetic.
+> No patient data or proprietary information is used. True parameter values
+> are documented in each project's simulation script.
+
+## Overview
+
+Five analyses spanning the drug development continuum, each rendered as a
+self-contained HTML report. The toolchain is open-source throughout:
+**nlmixr2**, **rxode2**, and **mrgsolve** for the R-based projects;
+**scipy** and **matplotlib** for the Python-based PBPK. No NONMEM licence
+is required.
+
+## Projects
+
+::: {.column-page}
+
+| # | Title | Clinical Question | Tools |
+|---|-------|-------------------|-------|
+| [01](projects/01_popPK_nlmixr2/index.qmd) | Population PK | Does flat 100 mg QD maintain target trough across BW 40–120 kg? | nlmixr2, rxode2 |
+| [02](projects/02_PKPD_emax/index.qmd) | Sigmoid Emax PK/PD | Which exposure metric predicts a biomarker best? What is the EC₅₀? | nlmixr2, ggplot2 |
+| [03](projects/03_preclinical_to_human/index.qmd) | Preclinical → Human | What FIH starting dose does rat/dog allometry support? | nlmixr2, allometry |
+| [04](projects/04_PBPK_allometry/index.qmd) | Minimal PBPK | Does allometric PBPK reproduce human PK across age? | scipy, matplotlib |
+| [05](projects/05_trial_simulation/index.qmd) | Trial Simulation | What sample size achieves ≥ 80 % power to estimate EC₅₀ within ± 30 %? | rxode2, future.apply |
+
+:::
+
+## Reproducing Results
+
+```bash
+git clone https://github.com/dcmgithb/pharmacometrics.git
+cd pharmacometrics
+bash reproduce.sh
+```
+
+Full rebuild takes approximately 60–90 minutes (bootstrap n = 200 dominates).
+For a quick smoke test: `BOOTSTRAP_N_BOOT=50 bash reproduce.sh`.
+
+## Shared Infrastructure
+
+Shared R helpers in `R/` are sourced by every project:
+
+- `gof_plots()` — DV vs PRED/IPRED, CWRES vs TIME/PRED panels
+- `pcvpc()` — prediction-corrected VPC with optional stratification
+- `bootstrap_nlmixr()` — case-resampling bootstrap CI via future.apply
+- `shrinkage_table()` — η- and ε-shrinkage with regulatory colour coding
+
+Python utilities in `python/` support the PBPK and trial simulation projects.

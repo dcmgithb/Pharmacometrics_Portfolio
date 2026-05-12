@@ -1,0 +1,264 @@
+{
+  "R": {
+    "Version": "4.4.1",
+    "Repositories": [
+      {
+        "Name": "CRAN",
+        "URL": "https://cloud.r-project.org"
+      }
+    ]
+  },
+  "Packages": {
+    "renv": {
+      "Package": "renv",
+      "Version": "1.0.7",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "utils"
+      ],
+      "Hash": "397b7b2a265bc5a7a06852524dabae20"
+    },
+    "nlmixr2": {
+      "Package": "nlmixr2",
+      "Version": "4.0.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "nlmixr2est",
+        "nlmixr2extra",
+        "nlmixr2plot",
+        "rxode2"
+      ],
+      "Hash": "nlmixr2-4.0.1"
+    },
+    "nlmixr2est": {
+      "Package": "nlmixr2est",
+      "Version": "3.0.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "rxode2",
+        "nlmixr2data"
+      ],
+      "Hash": "nlmixr2est-3.0.1"
+    },
+    "nlmixr2extra": {
+      "Package": "nlmixr2extra",
+      "Version": "3.0.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "nlmixr2est"
+      ],
+      "Hash": "nlmixr2extra-3.0.1"
+    },
+    "nlmixr2plot": {
+      "Package": "nlmixr2plot",
+      "Version": "3.0.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "nlmixr2est",
+        "vpc"
+      ],
+      "Hash": "nlmixr2plot-3.0.1"
+    },
+    "rxode2": {
+      "Package": "rxode2",
+      "Version": "4.1.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [],
+      "Hash": "rxode2-4.1.1"
+    },
+    "mrgsolve": {
+      "Package": "mrgsolve",
+      "Version": "1.6.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "Rcpp",
+        "BH"
+      ],
+      "Hash": "mrgsolve-1.6.1"
+    },
+    "ggplot2": {
+      "Package": "ggplot2",
+      "Version": "4.0.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "scales",
+        "gtable",
+        "rlang",
+        "vctrs",
+        "glue"
+      ],
+      "Hash": "ggplot2-4.0.0"
+    },
+    "gt": {
+      "Package": "gt",
+      "Version": "0.11.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "rlang",
+        "htmltools",
+        "sass"
+      ],
+      "Hash": "gt-0.11.1"
+    },
+    "kableExtra": {
+      "Package": "kableExtra",
+      "Version": "1.4.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "knitr",
+        "stringr",
+        "htmltools"
+      ],
+      "Hash": "kableExtra-1.4.0"
+    },
+    "vpc": {
+      "Package": "vpc",
+      "Version": "1.2.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "ggplot2",
+        "dplyr"
+      ],
+      "Hash": "vpc-1.2.2"
+    },
+    "npde": {
+      "Package": "npde",
+      "Version": "3.5",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [],
+      "Hash": "npde-3.5"
+    },
+    "future": {
+      "Package": "future",
+      "Version": "1.34.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "parallelly",
+        "listenv",
+        "globals"
+      ],
+      "Hash": "future-1.34.0"
+    },
+    "future.apply": {
+      "Package": "future.apply",
+      "Version": "1.11.3",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "future",
+        "globals"
+      ],
+      "Hash": "future.apply-1.11.3"
+    },
+    "dplyr": {
+      "Package": "dplyr",
+      "Version": "1.1.4",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "rlang",
+        "vctrs",
+        "tibble",
+        "tidyselect",
+        "glue",
+        "generics"
+      ],
+      "Hash": "dplyr-1.1.4"
+    },
+    "tidyr": {
+      "Package": "tidyr",
+      "Version": "1.3.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "dplyr",
+        "rlang",
+        "vctrs"
+      ],
+      "Hash": "tidyr-1.3.1"
+    },
+    "purrr": {
+      "Package": "purrr",
+      "Version": "1.0.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "rlang",
+        "vctrs",
+        "magrittr"
+      ],
+      "Hash": "purrr-1.0.2"
+    },
+    "readr": {
+      "Package": "readr",
+      "Version": "2.1.5",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "vroom",
+        "tibble",
+        "hms",
+        "tzdb",
+        "rlang"
+      ],
+      "Hash": "readr-2.1.5"
+    },
+    "cowplot": {
+      "Package": "cowplot",
+      "Version": "1.1.3",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "ggplot2",
+        "scales",
+        "gtable"
+      ],
+      "Hash": "cowplot-1.1.3"
+    },
+    "scales": {
+      "Package": "scales",
+      "Version": "1.3.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "rlang",
+        "labeling",
+        "munsell",
+        "viridisLite",
+        "farver"
+      ],
+      "Hash": "scales-1.3.0"
+    },
+    "here": {
+      "Package": "here",
+      "Version": "1.0.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "rprojroot"
+      ],
+      "Hash": "here-1.0.1"
+    },
+    "data.table": {
+      "Package": "data.table",
+      "Version": "1.16.4",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [],
+      "Hash": "data.table-1.16.4"
+    }
+  }
+}

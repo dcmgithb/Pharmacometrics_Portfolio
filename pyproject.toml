@@ -1,0 +1,25 @@
+[project]
+name = "pharmacometrics-portfolio"
+version = "0.1.0"
+description = "Reproducible pharmacometrics analyses (PBPK, trial simulation) using Python"
+requires-python = ">=3.11"
+dependencies = [
+    "scipy>=1.13.0",
+    "pandas>=2.2.0",
+    "numpy>=1.26.0",
+    "matplotlib>=3.9.0",
+    "great-tables>=0.12.0",
+    "seaborn>=0.13.2",
+    "jupyter>=1.1.0",
+    "ipykernel>=6.29.0",
+]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.0",
+    "ruff>=0.4.0",
+]
+
+[tool.ruff]
+line-length = 88
+select = ["E", "W", "F"]
